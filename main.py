@@ -16,6 +16,7 @@ app = FastAPI()
 async def startup():
     await database.connect()
 
+
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
@@ -71,7 +72,7 @@ async def create_flight_package(package: FlightPackage):
         return_date=package.return_date
     )
     last_record_id = await database.execute(query)
-    return {**package.dict(), "id": last_record_id}
+    return {**package.dict(), "id": last_record_id, "message": f"Flight package successfully created"}
 
 
 @app.get('/flight/packages', response_model=List[FlightPackage])
@@ -106,18 +107,30 @@ async def update_flight_package(package_id: int, package: FlightPackage):
         return_date=package.return_date
     )
     await database.execute(update_query)
-    return {**package.dict(), "id": package_id}
+    return {**package.dict(), "id": package_id, "message": f"Flight package with id {package_id} successfully updated"}
+
+
+@app.delete('/flight/package/{package_id}', response_model=FlightPackage)
+async def drop_flight_package(package_id: int, package: FlightPackage):
+    query = select([flight_packages]).where(flight_packages.c.id == package_id)
+    existing_package = await database.fetch_one(query)
+    if existing_package is None:
+        raise HTTPException(status_code=404, detail="Flight package not found")
+
+    delete_query = flight_packages.delete().where(flight_packages.c.id == package_id)
+    await database.execute(delete_query)
+    return {**package.dict(), "id": package_id, "message": f"Flight package with id {package_id} successfully deleted"}
 
 
 @app.get('/flight/search', response_model=List[FlightPackage])
 async def search_flight_packages(
-    destination: Optional[str] = Query(None),
-    origin: Optional[str] = Query(None),
-    min_price: Optional[float] = Query(None),
-    max_price: Optional[float] = Query(None),
-    airline: Optional[str] = Query(None),
-    departure_date: Optional[str] = Query(None),
-    return_date: Optional[str] = Query(None)
+        destination: Optional[str] = Query(None),
+        origin: Optional[str] = Query(None),
+        min_price: Optional[float] = Query(None),
+        max_price: Optional[float] = Query(None),
+        airline: Optional[str] = Query(None),
+        departure_date: Optional[str] = Query(None),
+        return_date: Optional[str] = Query(None)
 ):
     query = select([flight_packages])
     if destination:
@@ -141,4 +154,5 @@ async def search_flight_packages(
 
 if __name__ == '__main__':
     import uvicorn
+
     uvicorn.run(app, host='0.0.0.0', port=8000)
