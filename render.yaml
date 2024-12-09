@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: bibilomo_travels_backend
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "./start.sh"
+    envVars:
+      - key: DATABASE_URL
+        value: "postgresql://admin:GCvutMj0V75y2PgqH1MA9nTJoL7KViIQ@dpg-ctb3sed6l47c73brroh0-a.oregon-postgres.render.com/travel_db_l213"
