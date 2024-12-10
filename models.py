@@ -16,6 +16,7 @@ flight_packages = Table(
     "flight_packages",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("name", String),
     Column("destination", String),
     Column("origin", String),
     Column("price", Float),
