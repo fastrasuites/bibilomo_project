@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
 from sqlalchemy import select
+
 from database import database
 from models import admin_users
 
@@ -40,7 +40,7 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 async def authenticate_admin(username: str, password: str):
-    query = select([admin_users]).where(admin_users.c.username == username)
+    query = select(admin_users).where(admin_users.c.username == username)
     admin = await database.fetch_one(query)
     if not admin or not verify_password(password, admin["hashed_password"]):
         return False

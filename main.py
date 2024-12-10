@@ -34,7 +34,7 @@ class FlightPackage(BaseModel):
 
 @app.post('/admin/register', response_model=Token)
 async def register_admin(admin_register: AdminRegister):
-    query = select([admin_users]).where(admin_users.c.username == admin_register.username)
+    query = select(admin_users).where(admin_users.c.username == admin_register.username)
     existing_admin = await database.fetch_one(query)
     if existing_admin:
         raise HTTPException(status_code=400, detail="Username already registered")
@@ -77,14 +77,14 @@ async def create_flight_package(package: FlightPackage):
 
 @app.get('/flight/packages', response_model=List[FlightPackage])
 async def list_flight_packages():
-    query = select([flight_packages])
+    query = select(flight_packages)
     results = await database.fetch_all(query)
     return results
 
 
 @app.get('/flight/package/{package_id}', response_model=FlightPackage)
 async def get_flight_package(package_id: int):
-    query = select([flight_packages]).where(flight_packages.c.id == package_id)
+    query = select(flight_packages).where(flight_packages.c.id == package_id)
     result = await database.fetch_one(query)
     if result is None:
         raise HTTPException(status_code=404, detail="Flight package not found")
@@ -93,7 +93,7 @@ async def get_flight_package(package_id: int):
 
 @app.put('/flight/package/{package_id}', response_model=FlightPackage)
 async def update_flight_package(package_id: int, package: FlightPackage):
-    query = select([flight_packages]).where(flight_packages.c.id == package_id)
+    query = select(flight_packages).where(flight_packages.c.id == package_id)
     existing_package = await database.fetch_one(query)
     if existing_package is None:
         raise HTTPException(status_code=404, detail="Flight package not found")
@@ -112,7 +112,7 @@ async def update_flight_package(package_id: int, package: FlightPackage):
 
 @app.delete('/flight/package/{package_id}', response_model=FlightPackage)
 async def drop_flight_package(package_id: int, package: FlightPackage):
-    query = select([flight_packages]).where(flight_packages.c.id == package_id)
+    query = select(flight_packages).where(flight_packages.c.id == package_id)
     existing_package = await database.fetch_one(query)
     if existing_package is None:
         raise HTTPException(status_code=404, detail="Flight package not found")
@@ -132,7 +132,7 @@ async def search_flight_packages(
         departure_date: Optional[str] = Query(None),
         return_date: Optional[str] = Query(None)
 ):
-    query = select([flight_packages])
+    query = select(flight_packages)
     if destination:
         query = query.where(flight_packages.c.destination == destination)
     if origin:
