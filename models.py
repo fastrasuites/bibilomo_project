@@ -1,4 +1,6 @@
-from sqlalchemy import Table, Column, Integer, String, MetaData, Float
+from _pydatetime import datetime
+
+from sqlalchemy import Table, Date, Column, Integer, String, MetaData, Float, DateTime
 
 metadata = MetaData()
 
@@ -13,11 +15,12 @@ admin_users = Table(
 flight_packages = Table(
     "flight_packages",
     metadata,
-    Column("id", Integer, primary_key=True),
+    Column("id", Integer, primary_key=True, autoincrement=True),
     Column("destination", String),
     Column("origin", String),
     Column("price", Float),
     Column("airline", String),
-    Column("departure_date", String),
-    Column("return_date", String, nullable=True),
+    Column("date_created", DateTime, default=datetime.utcnow),
+    Column("departure_date", Date),
+    Column("return_date", Date, nullable=True),
 )

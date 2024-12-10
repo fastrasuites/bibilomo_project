@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query, Path
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from datetime import timedelta
+from datetime import timedelta, datetime
 from typing import Optional, List
 from sqlalchemy import select, insert
 from database import database
@@ -40,6 +40,7 @@ class FlightPackage(BaseModel):
     airline: str
     departure_date: str
     return_date: Optional[str] = None
+    date_created: datetime = None
 
 
 @app.post('/admin/register', response_model=Token)
@@ -80,9 +81,9 @@ async def create_flight_package(package: FlightPackage):
         airline=package.airline,
         departure_date=package.departure_date,
         return_date=package.return_date
-    )
-    last_record_id = await database.execute(query)
-    return {**package.dict(), "id": last_record_id, "message": f"Flight package successfully created"}
+    ).returning(flight_packages.c.id, flight_packages.c.date_created)
+    result = await database.execute(query)
+    return {**package.dict(),  "id": result["id"], "date_created": result["date_created"], "message": f"Flight package successfully created"}
 
 
 @app.get('/flight/packages', response_model=List[FlightPackage])
