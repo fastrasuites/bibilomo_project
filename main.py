@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Query, Path
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import timedelta
 from typing import Optional, List
@@ -10,6 +11,15 @@ from admin_auth import (AdminLogin, Token, authenticate_admin, AdminRegister, ge
                         create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES, admin_users)
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
 
 
 @app.on_event("startup")
