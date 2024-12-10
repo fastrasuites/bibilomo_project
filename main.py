@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query, Path
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, date
 from typing import Optional, List
 from sqlalchemy import select, insert
 from database import database
@@ -33,14 +33,20 @@ async def shutdown():
 
 
 class FlightPackage(BaseModel):
-    id: Optional[int]
+    name: str
     destination: str
     origin: str
     price: float
     airline: str
-    departure_date: str
-    return_date: Optional[str] = None
+    departure_date: date
+    return_date: Optional[date] = None
     date_created: datetime = None
+
+    class Config:
+        allow_population_by_field_name = True
+        alias_generator = lambda string: ''.join(
+            word.capitalize() if i > 0 else word for i, word in enumerate(string.split('_'))
+        )
 
 
 @app.post('/admin/register', response_model=Token)
