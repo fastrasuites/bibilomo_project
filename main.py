@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query, Path
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import timedelta, datetime, date
@@ -21,15 +21,16 @@ app.add_middleware(
 )
 
 
-
 @app.on_event("startup")
 async def startup():
-    await database.connect()
+    if not database.is_connected:
+        await database.connect()
 
 
 @app.on_event("shutdown")
 async def shutdown():
-    await database.disconnect()
+    if database.is_connected:
+        await database.disconnect()
 
 
 class FlightPackage(BaseModel):
@@ -89,14 +90,23 @@ async def create_flight_package(package: FlightPackage):
         return_date=package.return_date
     ).returning(flight_packages.c.id, flight_packages.c.date_created)
     result = await database.execute(query)
-    return {**package.dict(),  "id": result["id"], "date_created": result["date_created"], "message": f"Flight package successfully created"}
+    return {**package.dict(), "id": result["id"], "date_created": result["date_created"],
+            "message": f"Flight package successfully created"}
 
 
 @app.get('/flight/packages', response_model=List[FlightPackage])
 async def list_flight_packages():
     query = select(flight_packages)
-    results = await database.fetch_all(query)
-    return results
+    try:
+        results = await database.fetch_all(query)
+
+        valid_results = []
+        for result in results:
+            if result['name'] and result['departure_date']:
+                valid_results.append(result)
+        return valid_results
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get('/flight/package/{package_id}', response_model=FlightPackage)
