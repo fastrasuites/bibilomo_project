@@ -34,6 +34,7 @@ async def shutdown():
 
 
 class FlightPackage(BaseModel):
+    id: int
     name: str
     destination: str
     origin: str
@@ -43,11 +44,6 @@ class FlightPackage(BaseModel):
     return_date: Optional[date] = None
     date_created: datetime = None
 
-    class Config:
-        allow_population_by_field_name = True
-        alias_generator = lambda string: ''.join(
-            word.capitalize() if i > 0 else word for i, word in enumerate(string.split('_'))
-        )
 
 
 @app.post('/admin/register', response_model=Token)
@@ -81,17 +77,20 @@ async def login_admin(admin_login: AdminLogin):
 
 @app.post('/flight/package', response_model=FlightPackage)
 async def create_flight_package(package: FlightPackage):
-    query = insert(flight_packages).values(
-        destination=package.destination,
-        origin=package.origin,
-        price=package.price,
-        airline=package.airline,
-        departure_date=package.departure_date,
-        return_date=package.return_date
-    ).returning(flight_packages.c.id)
-    last_record_id = await database.execute(query)
-    return {**package.dict(), "id": last_record_id,
-            "message": f"Flight package successfully created"}
+    try:
+        query = insert(flight_packages).values(
+            destination=package.destination,
+            origin=package.origin,
+            price=package.price,
+            airline=package.airline,
+            departure_date=package.departure_date,
+            return_date=package.return_date
+        ).returning(flight_packages.c.id)
+        last_record_id = await database.execute(query)
+        return {**package.dict(), "id": last_record_id,
+                "message": f"Flight package successfully created"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get('/flight/packages', response_model=List[FlightPackage])
@@ -99,12 +98,7 @@ async def list_flight_packages():
     query = select(flight_packages)
     try:
         results = await database.fetch_all(query)
-
-        valid_results = []
-        for result in results:
-            if result['name'] and result['departure_date']:
-                valid_results.append(result)
-        return valid_results
+        return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
