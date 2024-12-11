@@ -88,9 +88,9 @@ async def create_flight_package(package: FlightPackage):
         airline=package.airline,
         departure_date=package.departure_date,
         return_date=package.return_date
-    ).returning(flight_packages.c.id, flight_packages.c.date_created)
-    result = await database.execute(query)
-    return {**package.dict(), "id": result["id"], "date_created": result["date_created"],
+    ).returning(flight_packages.c.id)
+    last_record_id = await database.execute(query)
+    return {**package.dict(), "id": last_record_id,
             "message": f"Flight package successfully created"}
 
 
