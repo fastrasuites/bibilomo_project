@@ -97,9 +97,9 @@ async def create_flight_package(package: FlightPackage):
 
 @app.get('/flight/packages', response_model=List[FlightPackage])
 async def list_flight_packages():
-    query = select(flight_packages)
+    query = select(flight_packages).order_by(flight_packages.c.date_created)
     try:
-        results = await database.fetch_all(query)
+        results = await database.execute(query)
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
