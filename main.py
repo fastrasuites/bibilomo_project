@@ -79,10 +79,12 @@ async def login_admin(admin_login: AdminLogin):
 async def create_flight_package(package: FlightPackage):
     try:
         query = insert(flight_packages).values(
+            name=package.name,
             destination=package.destination,
             origin=package.origin,
             price=package.price,
             airline=package.airline,
+            date_created=package.date_created,
             departure_date=package.departure_date,
             return_date=package.return_date
         ).returning(flight_packages.c.id)
