@@ -36,7 +36,7 @@ class AdminLoginView(APIView):
             return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-class FlightPackageCreateView(APIView):
+class FlightPackageCreateUpdateDeleteView(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = FlightPackageSerializer
 
@@ -46,25 +46,6 @@ class FlightPackageCreateView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class FlightPackageView(APIView):
-    serializer_class = FlightPackageSerializer
-
-    def get(self, request, pk=None):
-        if pk:
-            try:
-                package = FlightPackage.objects.get(pk=pk)
-                serializer = FlightPackageSerializer(package)
-                return Response(serializer.data)
-            except FlightPackage.DoesNotExist:
-                return Response({'error': 'Flight package not found'}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            packages = FlightPackage.objects.all()
-            serializer = FlightPackageSerializer(packages, many=True)
-            return Response(serializer.data)
-
-
 
     def put(self, request, pk):
         try:
@@ -84,3 +65,22 @@ class FlightPackageView(APIView):
             return Response({'message': f'Flight package with id {pk} successfully deleted'}, status=status.HTTP_200_OK)
         except FlightPackage.DoesNotExist:
             return Response({'error': 'Flight package not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+class FlightPackageView(APIView):
+    serializer_class = FlightPackageSerializer
+
+    def get(self, request, pk=None):
+        if pk:
+            try:
+                package = FlightPackage.objects.get(pk=pk)
+                serializer = FlightPackageSerializer(package)
+                return Response(serializer.data)
+            except FlightPackage.DoesNotExist:
+                return Response({'error': 'Flight package not found'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            packages = FlightPackage.objects.all()
+            serializer = FlightPackageSerializer(packages, many=True)
+            return Response(serializer.data)
