@@ -37,7 +37,7 @@ class AdminLoginView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class FlightPackageView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     serializer_class = FlightPackageSerializer
 
     def get(self, request, pk=None):
