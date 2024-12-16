@@ -13,7 +13,7 @@ urlpatterns = [
     path('flight/package/<int:pk>/', FlightPackageRetrieveView.as_view(), name='retrieve_package'),
     path('flight/package/<int:pk>/update/', FlightPackageCreateUpdateDeleteView.as_view(), name='update_package'),
     path('flight/package/<int:pk>/delete/', FlightPackageCreateUpdateDeleteView.as_view(), name='delete_package'),
-    path('flight/packages/search/', FlightPackageRetrieveView.search, name='search_package'),
+    path('flight/packages/search', FlightPackageRetrieveView.as_view(), name='search_package'),
 
     # for booking applications
     path('flight/booking-application/', BookingApplicationCreateView.as_view(), name='create_booking'),
