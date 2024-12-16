@@ -7,7 +7,7 @@ class FlightPackageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FlightPackage
-        fields = ['id', 'name', 'destination', 'placeholder_image', 'flight_class', 'origin', 'price', 'airline',
+        fields = ['id', 'name', 'destination', 'placeholder_image', 'flight_mode', 'flight_class', 'origin', 'price', 'airline',
                   'departure_date', 'return_date']
         read_only_fields = ['date_created', 'date_updated']
 
