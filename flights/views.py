@@ -100,7 +100,6 @@ class FlightPackageRetrieveView(APIView):
         recent_count = FlightPackage.objects.filter(date_created__gte=one_week_ago).count()
         return Response({'total_count': total_count, 'recent_count': recent_count})
 
-    @staticmethod
     @action(detail=False, methods=['get'])
     def search(request):
         # Search for flight packages by different fields
