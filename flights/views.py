@@ -47,7 +47,7 @@ class AdminLoginView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class FlightPackageCreateUpdateDeleteViewSet(ViewSet):
+class FlightPackageCreateViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = FlightPackageSerializer
 
@@ -62,6 +62,10 @@ class FlightPackageCreateUpdateDeleteViewSet(ViewSet):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class FlightPackageUpdateDeleteViewSet(ViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = FlightPackageSerializer
 
     @extend_schema(
         request=FlightPackageSerializer,
