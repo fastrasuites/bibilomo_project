@@ -113,10 +113,11 @@ class FlightPackageRetrieveViewSet(ViewSet):
         ],
         description="Retrieve a specific flight package by ID.",
     )
-    def retrieve(self, request, id: int):
+    def retrieve(self, request, pk):
         """Retrieve a single flight package by ID."""
         try:
-            package = FlightPackage.objects.get(pk=id)
+
+            package = FlightPackage.objects.get(pk=pk)
             serializer = FlightPackageSerializer(package)
             return Response(serializer.data)
         except FlightPackage.DoesNotExist:
