@@ -7,8 +7,8 @@ class FlightPackageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FlightPackage
-        fields = ['id', 'name', 'destination', 'placeholder_image', 'flight_mode', 'flight_class', 'origin', 'price', 'airline',
-                  'departure_date', 'return_date']
+        fields = ['id', 'name', 'destination', 'placeholder_image', 'flight_mode', 'flight_class', 'origin', 'price',
+                  'airline', 'departure_date', 'return_date']
         read_only_fields = ['date_created', 'date_updated']
 
 
@@ -23,8 +23,6 @@ class BookingApplicationSerializer(serializers.ModelSerializer):
 
 
 class ContactMessageSerializer(serializers.ModelSerializer):
-
-
     class Meta:
         model = ContactMessage
         fields = ['id', 'full_name', 'email', 'message']

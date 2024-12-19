@@ -14,8 +14,7 @@ class FlightPackage(models.Model):
         ('multi_city', 'Multi City')
     ], default='one_way')
     destination = models.CharField(max_length=255)
-    placeholder_image = models.ImageField(upload_to='flight_images',
-                                          default='https://placehold.co/600x400/000000/FFFFFF.svg')
+    placeholder_image = models.ImageField(upload_to='flight_images', null=True, blank=True)
     flight_class = models.CharField(max_length=255, choices=[
         ('economy', 'Economy'),
         ('economy_plus', 'Economy Plus'),

@@ -70,6 +70,9 @@ class FlightPackageUpdateDeleteViewSet(ViewSet):
     @extend_schema(
         request=FlightPackageSerializer,
         responses={200: FlightPackageSerializer},
+        parameters=[
+            OpenApiParameter(name='id', type=int, location='path', required=True, description="Update by Id"),
+        ],
         description="Update a specific flight package by ID."
     )
     def update(self, request, pk):
@@ -85,6 +88,9 @@ class FlightPackageUpdateDeleteViewSet(ViewSet):
 
     @extend_schema(
         responses={'200': None},
+        parameters=[
+            OpenApiParameter(name='id', type=int, location='path', required=True, description="Destroy by Id"),
+        ],
         description="Delete a specific flight package by ID."
     )
     def destroy(self, request, pk):
@@ -101,12 +107,16 @@ class FlightPackageRetrieveViewSet(ViewSet):
 
     @extend_schema(
         responses=FlightPackageSerializer,
+        parameters=[
+
+            OpenApiParameter(name='id', type=int, required=True, location='path', description="Retrieve by Id"),
+        ],
         description="Retrieve a specific flight package by ID.",
     )
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, id: int):
         """Retrieve a single flight package by ID."""
         try:
-            package = FlightPackage.objects.get(pk=pk)
+            package = FlightPackage.objects.get(pk=id)
             serializer = FlightPackageSerializer(package)
             return Response(serializer.data)
         except FlightPackage.DoesNotExist:
@@ -190,6 +200,9 @@ class BookingApplicationRetrieveUpdateDeleteViewSet(ViewSet):
 
     @extend_schema(
         responses={200: BookingApplicationSerializer},
+        parameters=[
+            OpenApiParameter(name='id', type=int, location='path', required=True, description="Retrieve by Id"),
+        ],
         description="Retrieve a specific booking application by ID."
     )
     def retrieve(self, request, pk=None):
@@ -214,6 +227,9 @@ class BookingApplicationRetrieveUpdateDeleteViewSet(ViewSet):
     @extend_schema(
         request=BookingApplicationSerializer,
         responses={200: ContactMessageSerializer},
+        parameters=[
+            OpenApiParameter(name='id', type=int, location='path', required=True, description="Update by Id"),
+        ],
         description="Update a specific booking application by ID."
     )
     def update(self, request, pk):
@@ -229,6 +245,9 @@ class BookingApplicationRetrieveUpdateDeleteViewSet(ViewSet):
 
     @extend_schema(
         responses={'200': None},
+        parameters=[
+            OpenApiParameter(name='id', type=int, location='path', required=True, description="Destroy by Id"),
+        ],
         description="Delete a specific booking application by ID."
     )
     def destroy(self, request, pk):
@@ -275,6 +294,9 @@ class ContactMessageRetrieveUpdateDeleteViewSet(ViewSet):
 
     @extend_schema(
         responses={200: ContactMessageSerializer},
+        parameters=[
+            OpenApiParameter(name='id', type=int, location='path', required=True, description="Retrieve by Id"),
+        ],
         description="Retrieve a specific contact message by ID."
     )
     def retrieve(self, request, pk=None):
@@ -297,6 +319,9 @@ class ContactMessageRetrieveUpdateDeleteViewSet(ViewSet):
     @extend_schema(
         request=ContactMessageSerializer,
         responses={200: ContactMessageSerializer},
+        parameters=[
+            OpenApiParameter(name='id', type=int, location='path', required=True, description="Update by Id"),
+        ],
         description="Update a specific contact message by ID."
     )
     def update(self, request, pk):
@@ -312,6 +337,9 @@ class ContactMessageRetrieveUpdateDeleteViewSet(ViewSet):
 
     @extend_schema(
         responses={'200': None},
+        parameters=[
+            OpenApiParameter(name='id', type=int, location='path', required=True, description="Destroy by Id"),
+        ],
         description="Delete a specific contact message by ID."
     )
     def destroy(self, request, pk):
