@@ -3,9 +3,9 @@ import datetime
 from django.utils import timezone
 from rest_framework.decorators import action
 from rest_framework.views import APIView
-from rest_framework.viewsets import ViewSet
+from rest_framework.viewsets import ViewSet, ModelViewSet
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from drf_spectacular.utils import extend_schema, OpenApiParameter
@@ -63,6 +63,7 @@ class FlightPackageCreateViewSet(ViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class FlightPackageUpdateDeleteViewSet(ViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = FlightPackageSerializer
@@ -77,7 +78,7 @@ class FlightPackageUpdateDeleteViewSet(ViewSet):
     )
     def update(self, request, pk):
         try:
-            package = FlightPackage.objects.get(pk=pk)
+            package = FlightPackage.objects.get(pk=pk, is_hidden=False)
         except FlightPackage.DoesNotExist:
             return Response({'error': 'Flight package not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = FlightPackageSerializer(package, data=request.data)
@@ -95,11 +96,25 @@ class FlightPackageUpdateDeleteViewSet(ViewSet):
     )
     def destroy(self, request, pk):
         try:
-            package = FlightPackage.objects.get(pk=pk)
-            package.delete()
-            return Response({'message': f'Flight package with id {pk} successfully deleted'}, status=status.HTTP_200_OK)
+            package = FlightPackage.objects.get(pk=pk, is_hidden=False)
+            package.is_hidden = True
+            return Response({'message': f'Flight package with id {pk} successfully archived'},
+                            status=status.HTTP_200_OK)
         except FlightPackage.DoesNotExist:
             return Response({'error': 'Flight package not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @extend_schema(
+        responses={'200': None},
+        description="List the archived flight packages"
+    )
+    @action(detail=False, methods=['get'])
+    def archived_list(self, request, *args, **kwargs):
+
+        # List the archived booking applications
+        archived_count = FlightPackage.objects.filter(is_hidden=True).count()
+        flight_packages = FlightPackage.objects.filter(is_hidden=True)
+        serializer = FlightPackageSerializer(flight_packages, many=True)
+        return Response({**serializer.data,  'archived_count': archived_count})
 
 
 class FlightPackageRetrieveViewSet(ViewSet):
@@ -117,7 +132,7 @@ class FlightPackageRetrieveViewSet(ViewSet):
         """Retrieve a single flight package by ID."""
         try:
 
-            package = FlightPackage.objects.get(pk=pk)
+            package = FlightPackage.objects.get(pk=pk, is_hidden=False)
             serializer = FlightPackageSerializer(package)
             return Response(serializer.data)
         except FlightPackage.DoesNotExist:
@@ -129,22 +144,22 @@ class FlightPackageRetrieveViewSet(ViewSet):
     )
     def list(self, request):
         """List all flight packages."""
-        packages = FlightPackage.objects.all()
+        packages = FlightPackage.objects.filter(is_hidden=False)
         serializer = FlightPackageSerializer(packages, many=True)
         return Response(serializer.data)
 
     @extend_schema(
         responses={'200': None},
-        description="Get the total count of flight packages and the count of recent ones."
+        description="Get the total count of active flight packages and the count of recent ones."
     )
     @action(detail=False, methods=['get'])
     def count(self, request):
         """Get the total count of flight packages and recent packages created in the last 7 days."""
-        total_count = FlightPackage.objects.all().count()
+        total_active_count = FlightPackage.objects.filter(is_hidden=False).count()
         one_week_ago = timezone.now() - datetime.timedelta(days=7)
         recent_count = FlightPackage.objects.filter(date_created__gte=one_week_ago).count()
-        return Response({'total_count': total_count, 'recent_count': recent_count})
-
+        return Response(
+            {'total_count': total_active_count, 'recent_count': recent_count})
 
     @extend_schema(
         responses=FlightPackageSerializer(many=True),
@@ -173,31 +188,45 @@ class FlightPackageRetrieveViewSet(ViewSet):
         }
         filters = {k: v for k, v in filters.items() if v}  # Remove None values
         if filters:
-            packages = FlightPackage.objects.filter(**filters)
+            packages = FlightPackage.objects.filter(is_hidden=False).filter(**filters)
             serializer = FlightPackageSerializer(packages, many=True)
             return Response(serializer.data)
         return Response({'error': 'A query parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class BookingApplicationCreateViewSet(ViewSet):
+class SpecialPermission(IsAuthenticated):
+    def has_permission(self, request, view):
+        if request.method == 'POST':
+            return True
+        return super().has_permission(request, view)
+
+
+class BookingApplicationViewSet(ModelViewSet):
+    queryset = BookingApplication.objects.all()
     serializer_class = BookingApplicationSerializer
+    permission_classes = [SpecialPermission]
+
+    # def get_authenticators(self):
+    #     if self.request.method == 'POST':
+    #         return []
+    #     return super().get_authenticators()
+
+    # def get_permissions(self):
+    #     if self.request.method == 'POST':
+    #         return [AllowAny()]
+    #     return super().get_permissions()
 
     @extend_schema(
         request=BookingApplicationSerializer,
         responses={201: BookingApplicationSerializer},
-        description="Create a new flight package."
+        description="Create a new booking application."
     )
     def create(self, request):
-        serializer = BookingApplicationSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class BookingApplicationRetrieveUpdateDeleteViewSet(ViewSet):
-    serializer_class = BookingApplicationSerializer
-    permission_classes = [IsAuthenticated]
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
     @extend_schema(
         responses={200: BookingApplicationSerializer},
@@ -209,7 +238,7 @@ class BookingApplicationRetrieveUpdateDeleteViewSet(ViewSet):
     def retrieve(self, request, pk=None):
         """ Retrieve a specific booking application by ID"""
         try:
-            booking = BookingApplication.objects.get(pk=pk)
+            booking = BookingApplication.objects.get(pk=pk, is_hidden=False)
             serializer = BookingApplicationSerializer(booking)
             return Response(serializer.data)
         except BookingApplication.DoesNotExist:
@@ -221,7 +250,7 @@ class BookingApplicationRetrieveUpdateDeleteViewSet(ViewSet):
     )
     def list(self, request):
         """ List all Booking Applications"""
-        bookings = BookingApplication.objects.all()
+        bookings = BookingApplication.objects.filter(is_hidden=False)
         serializer = BookingApplicationSerializer(bookings, many=True)
         return Response(serializer.data)
 
@@ -235,7 +264,7 @@ class BookingApplicationRetrieveUpdateDeleteViewSet(ViewSet):
     )
     def update(self, request, pk):
         try:
-            booking = BookingApplication.objects.get(pk=pk)
+            booking = BookingApplication.objects.get(pk=pk, is_hidden=False)
         except BookingApplication.DoesNotExist:
             return Response({'error': 'Booking application not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = BookingApplicationSerializer(booking, data=request.data)
@@ -245,7 +274,7 @@ class BookingApplicationRetrieveUpdateDeleteViewSet(ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
-        responses={'200': None},
+        responses={'204': None},
         parameters=[
             OpenApiParameter(name='id', type=int, location='path', required=True, description="Destroy by Id"),
         ],
@@ -253,27 +282,42 @@ class BookingApplicationRetrieveUpdateDeleteViewSet(ViewSet):
     )
     def destroy(self, request, pk):
         try:
-            booking = BookingApplication.objects.get(pk=pk)
-            booking.delete()
-            return Response({'message': f'Booking application with id {pk} successfully deleted'},
-                            status=status.HTTP_200_OK)
+            booking = BookingApplication.objects.get(pk=pk, is_hidden=False)
+            booking.is_hidden = True
+            return Response({'message': f'Booking application with id {pk} successfully archived'},
+                            status=status.HTTP_204_NO_CONTENT)
         except BookingApplication.DoesNotExist:
             return Response({'error': 'Booking application not found'}, status=status.HTTP_404_NOT_FOUND)
 
     @extend_schema(
         responses={'200': None},
-        description="Get the total count of booking applications and the count of recent booking applications."
+        description="Get the total count of active and archived booking applications and the count of recent booking "
+                    "applications."
     )
     @action(detail=False, methods=['get'])
     def count(self, request):
         # Get the total count of booking applications and the count of recent booking applications
-        total_count = BookingApplication.objects.all().count()
+        total_active_count = BookingApplication.objects.filter(is_hidden=False).count()
         one_week_ago = timezone.now() - datetime.timedelta(days=7)
         recent_count = BookingApplication.objects.filter(date_booked__gte=one_week_ago).count()
-        return Response({'total_count': total_count, 'recent_count': recent_count})
+        archived_count = BookingApplication.objects.filter(is_hidden=True).count()
+        return Response(
+            {'total_count': total_active_count, 'recent_count': recent_count, 'archived_count': archived_count})
+
+    @extend_schema(
+        responses={'200': None},
+        description="List the archived booking applications"
+    )
+    @action(detail=False, methods=['get'])
+    def archived_list(self, request):
+        # List the archived booking applications
+        bookings = BookingApplication.objects.filter(is_hidden=True)
+        serializer = BookingApplicationSerializer(bookings, many=True)
+        return Response(serializer.data)
 
 
 class ContactMessageCreateViewSet(ViewSet):
+    queryset = ContactMessage.objects.all()
     serializer_class = ContactMessageSerializer
 
     @extend_schema(
@@ -302,7 +346,7 @@ class ContactMessageRetrieveUpdateDeleteViewSet(ViewSet):
     )
     def retrieve(self, request, pk=None):
         try:
-            message = ContactMessage.objects.get(pk=pk)
+            message = ContactMessage.objects.get(pk=pk, is_hidden=False)
             serializer = ContactMessageSerializer(message)
             return Response(serializer.data)
         except ContactMessage.DoesNotExist:
@@ -313,7 +357,7 @@ class ContactMessageRetrieveUpdateDeleteViewSet(ViewSet):
         description="List all contact messages."
     )
     def list(self, request):
-        messages = ContactMessage.objects.all()
+        messages = ContactMessage.objects.filter(is_hidden=False)
         serializer = ContactMessageSerializer(messages, many=True)
         return Response(serializer.data)
 
@@ -327,7 +371,7 @@ class ContactMessageRetrieveUpdateDeleteViewSet(ViewSet):
     )
     def update(self, request, pk):
         try:
-            message = ContactMessage.objects.get(pk=pk)
+            message = ContactMessage.objects.get(pk=pk, is_hidden=False)
         except ContactMessage.DoesNotExist:
             return Response({'error': 'Contact message not found'}, status=status.HTTP_404_NOT_FOUND)
         serializer = ContactMessageSerializer(message, data=request.data)
@@ -337,7 +381,7 @@ class ContactMessageRetrieveUpdateDeleteViewSet(ViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
-        responses={'200': None},
+        responses={'204': None},
         parameters=[
             OpenApiParameter(name='id', type=int, location='path', required=True, description="Destroy by Id"),
         ],
@@ -345,21 +389,35 @@ class ContactMessageRetrieveUpdateDeleteViewSet(ViewSet):
     )
     def destroy(self, request, pk):
         try:
-            message = ContactMessage.objects.get(pk=pk)
-            message.delete()
-            return Response({'message': f'Contact message with id {pk} successfully deleted'},
-                            status=status.HTTP_200_OK)
+            message = ContactMessage.objects.get(pk=pk, is_hidden=False)
+            message.is_hidden = True
+            return Response({'message': f'Contact message with id {pk} successfully archived'},
+                            status=status.HTTP_204_NO_CONTENT)
         except ContactMessage.DoesNotExist:
             return Response({'error': 'Contact message not found'}, status=status.HTTP_404_NOT_FOUND)
 
     @extend_schema(
         responses={'200': None},
-        description="Get the total count of contact messages and the count of recent contact messages."
+        description="Get the total count of active and archived contact messages and the count of recent contact "
+                    "messages."
     )
     @action(detail=False, methods=['get'])
     def count(self, request):
         # Get the total count of contact messages and the count of recent contact messages
-        total_count = ContactMessage.objects.all().count()
+        total_active_count = ContactMessage.objects.filter(is_hidden=False).count()
         one_week_ago = timezone.now() - datetime.timedelta(days=7)
         recent_count = ContactMessage.objects.filter(date_sent__gte=one_week_ago).count()
-        return Response({'total_count': total_count, 'recent_count': recent_count})
+        archived_count = ContactMessage.objects.filter(is_hidden=True).count()
+        return Response(
+            {'total_count': total_active_count, 'recent_count': recent_count, 'archived_count': archived_count})
+
+    @extend_schema(
+        responses={'200': None},
+        description="List the archived contact messages"
+    )
+    @action(detail=False, methods=['get'])
+    def archived_list(self, request):
+        # List the archived booking applications
+        contact_messages = ContactMessage.objects.filter(is_hidden=True)
+        serializer = ContactMessageSerializer(contact_messages, many=True)
+        return Response(serializer.data)

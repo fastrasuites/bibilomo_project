@@ -4,16 +4,14 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from .views import AdminLoginView, AdminRegisterView, FlightPackageRetrieveViewSet, \
-    FlightPackageCreateViewSet, FlightPackageUpdateDeleteViewSet, BookingApplicationCreateViewSet, \
-    BookingApplicationRetrieveUpdateDeleteViewSet, ContactMessageCreateViewSet, \
-    ContactMessageRetrieveUpdateDeleteViewSet
+    FlightPackageCreateViewSet, FlightPackageUpdateDeleteViewSet, BookingApplicationViewSet, \
+    ContactMessageCreateViewSet, ContactMessageRetrieveUpdateDeleteViewSet
 
 router = DefaultRouter()
 router.register(r'flight/packages', FlightPackageRetrieveViewSet, basename='r_package')
 router.register(r'flight/package', FlightPackageCreateViewSet, basename='c_package')
 router.register(r'flight/packages', FlightPackageUpdateDeleteViewSet, basename='ud_package')
-router.register(r'flight/booking-applications', BookingApplicationRetrieveUpdateDeleteViewSet, basename='rud_booking')
-router.register(r'flight/booking-application', BookingApplicationCreateViewSet, basename='c_booking')
+router.register(r'flight/booking-applications', BookingApplicationViewSet, basename='crud_booking')
 router.register(r'flight/contact-messages', ContactMessageRetrieveUpdateDeleteViewSet, basename='rud_message')
 router.register(r'flight/contact-message', ContactMessageCreateViewSet, basename='c_message')
 

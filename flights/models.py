@@ -27,6 +27,7 @@ class FlightPackage(models.Model):
     return_date = models.DateField(null=True, blank=True)
     date_created = models.DateTimeField(auto_now_add=True)
     date_updated = models.DateTimeField(auto_now=True)
+    is_hidden = models.BooleanField(default=False)
 
     objects = models.Manager()
 
@@ -42,7 +43,7 @@ class FlightPackage(models.Model):
 
 
 class BookingApplication(models.Model):
-    package = models.ForeignKey(FlightPackage, on_delete=models.CASCADE)
+    package = models.ForeignKey(FlightPackage, on_delete=models.CASCADE, related_name='applications')
     full_name = models.CharField(max_length=255)
     email = models.EmailField()
     number_of_passengers = models.IntegerField()
@@ -51,6 +52,7 @@ class BookingApplication(models.Model):
     gender = models.CharField(max_length=10, choices=[('m', 'Male'), ('f', 'Female')])
     nationality = models.CharField(max_length=255)
     date_booked = models.DateTimeField(auto_now_add=True)
+    is_hidden = models.BooleanField(default=False)
 
     objects = models.Manager()
 
@@ -70,6 +72,7 @@ class ContactMessage(models.Model):
     email = models.EmailField()
     message = CKEditor5Field()
     date_sent = models.DateTimeField(auto_now_add=True)
+    is_hidden = models.BooleanField(default=False)
 
     objects = models.Manager()
 

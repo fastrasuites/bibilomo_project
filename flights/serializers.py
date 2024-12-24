@@ -8,24 +8,28 @@ class FlightPackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlightPackage
         fields = ['id', 'name', 'destination', 'placeholder_image', 'flight_mode', 'flight_class', 'origin', 'price',
-                  'airline', 'departure_date', 'return_date']
+                  'airline', 'departure_date', 'return_date', 'is_hidden']
         read_only_fields = ['date_created', 'date_updated']
 
+    def validate_return_date(self, value):
+        if value < self.context['view'].request.GET.get('departure_date'):
+            raise serializers.ValidationError('Return date cannot be earlier than departure date.')
+        return value
 
 class BookingApplicationSerializer(serializers.ModelSerializer):
-    package = FlightPackageSerializer(many=True)
+    package = serializers.PrimaryKeyRelatedField(queryset=FlightPackage.objects.filter(is_hidden=False))
 
     class Meta:
         model = BookingApplication
         fields = ['id', 'package', 'full_name', 'email', 'number_of_passengers', 'phone_number', 'date_of_birth',
-                  'gender', 'nationality']
+                  'gender', 'nationality', 'is_hidden']
         read_only_fields = ['date_booked']
 
 
 class ContactMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactMessage
-        fields = ['id', 'full_name', 'email', 'message']
+        fields = ['id', 'full_name', 'email', 'message', 'is_hidden']
         read_only_fields = ['date_sent']
 
 
