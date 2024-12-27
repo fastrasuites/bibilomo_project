@@ -17,7 +17,7 @@ class FlightPackageSerializer(serializers.ModelSerializer):
         return value
 
 class BookingApplicationSerializer(serializers.ModelSerializer):
-    package = serializers.PrimaryKeyRelatedField(queryset=FlightPackage.objects.filter(is_hidden=False))
+    package = serializers.PrimaryKeyRelatedField(queryset=FlightPackage.objects.all())
 
     class Meta:
         model = BookingApplication
