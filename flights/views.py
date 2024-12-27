@@ -194,8 +194,7 @@ class BookingApplicationCreateViewSet(mixins.CreateModelMixin, GenericViewSet):
     permission_classes = [AllowAny]
 
 
-class AdminBookingApplicationAdditionalViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
-                                                  mixins.UpdateModelMixin, GenericViewSet):
+class AdminBookingApplicationAdditionalViewSet(GenericViewSet):
     serializer_class = BookingApplicationSerializer
     queryset = BookingApplication.objects.filter(is_hidden=False)
     permission_classes = [IsAuthenticated]
@@ -215,7 +214,7 @@ class AdminBookingApplicationAdditionalViewSet(mixins.ListModelMixin, mixins.Ret
 
 
 class BookingApplicationListRetrieveViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
-                                                  GenericViewSet):
+                                            GenericViewSet):
     serializer_class = BookingApplicationSerializer
     queryset = BookingApplication.objects.filter(is_hidden=False)
     permission_classes = [IsAuthenticated]
