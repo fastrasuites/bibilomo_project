@@ -71,8 +71,9 @@ class ArchiveRestoreListDetailViewSet(mixins.DestroyModelMixin, GenericViewSet):
             if queryset:
                 archived_count = queryset.count()
                 serializer = self.serializer_class(queryset, many=True)
-                return Response({'archived_count': archived_count, 'message': 'Successfully Retrieved Archived Models',
-                                 **serializer.data})
+                return Response(
+                    {'archived_count': archived_count, 'message': 'List of Successfully Retrieved Archived Models',
+                     'data': serializer.data})
             return Response({'archived_count': 0, 'error': 'No archived models found'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -91,7 +92,7 @@ class ArchiveRestoreListDetailViewSet(mixins.DestroyModelMixin, GenericViewSet):
         try:
             if queryset:
                 serializer = self.serializer_class(queryset.first())
-                return Response({'message': 'Successfully Retrieved Archived Models', **serializer.data})
+                return Response({'message': 'Successfully Retrieved Archived Models', 'data': serializer.data})
             return Response({'error': 'Object not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -258,10 +259,11 @@ class AdminContactMessageAdditionalViewSet(GenericViewSet):
 
 
 class ContactMessageListRetrieveViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
-                                              GenericViewSet):
+                                        GenericViewSet):
     serializer_class = ContactMessageSerializer
     queryset = ContactMessage.objects.filter(is_hidden=False)
     permission_classes = [IsAuthenticated]
+
 
 class ContactMessageUpdateViewSet(mixins.UpdateModelMixin, GenericViewSet):
     serializer_class = ContactMessageSerializer
@@ -273,4 +275,3 @@ class ContactMessageArchiveRestoreListDetailViewSet(ArchiveRestoreListDetailView
     queryset = ContactMessage.objects.all()
     serializer_class = ContactMessageSerializer
     permission_classes = [IsAuthenticated]
-

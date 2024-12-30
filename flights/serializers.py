@@ -11,10 +11,12 @@ class FlightPackageSerializer(serializers.ModelSerializer):
                   'airline', 'departure_date', 'return_date', 'is_hidden']
         read_only_fields = ['date_created', 'date_updated']
 
-    def validate_return_date(self, value):
-        if value < self.context['view'].request.GET.get('departure_date'):
-            raise serializers.ValidationError('Return date cannot be earlier than departure date.')
-        return value
+def validate_return_date(self, return_date):
+    if 'departure_date' in self.initial_data:
+        departure_date = self.initial_data['departure_date']
+        if return_date <= departure_date:
+            raise serializers.ValidationError("Return date must be later than departure date.")
+    return return_date
 
 class BookingApplicationSerializer(serializers.ModelSerializer):
     package = serializers.PrimaryKeyRelatedField(queryset=FlightPackage.objects.all())
