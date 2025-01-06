@@ -23,7 +23,7 @@ class BookingApplicationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BookingApplication
-        fields = ['id', 'package', 'full_name', 'email', 'number_of_passengers', 'phone_number', 'date_of_birth',
+        fields = ['id', 'package', 'first_name', 'last_name', 'email', 'number_of_passengers', 'phone_number', 'date_of_birth',
                   'gender', 'nationality', 'is_hidden']
         read_only_fields = ['date_booked']
 
