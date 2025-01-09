@@ -209,7 +209,7 @@ class AdminBookingApplicationAdditionalViewSet(GenericViewSet):
         """Get the total count of flight packages and recent packages created in the last 7 days."""
         total_active_count = self.queryset.filter(is_hidden=False).count()
         one_week_ago = timezone.now() - datetime.timedelta(days=7)
-        recent_count = self.queryset.filter(date_created__gte=one_week_ago).count()
+        recent_count = self.queryset.filter(date_booked__gte=one_week_ago).count()
         return Response(
             {'total_active_count': total_active_count, 'recent_count': recent_count})
 
@@ -253,7 +253,7 @@ class AdminContactMessageAdditionalViewSet(GenericViewSet):
         """Get the total count of flight packages and recent packages created in the last 7 days."""
         total_active_count = self.queryset.filter(is_hidden=False).count()
         one_week_ago = timezone.now() - datetime.timedelta(days=7)
-        recent_count = self.queryset.filter(date_created__gte=one_week_ago).count()
+        recent_count = self.queryset.filter(date_sent__gte=one_week_ago).count()
         return Response(
             {'total_active_count': total_active_count, 'recent_count': recent_count})
 
