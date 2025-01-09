@@ -19,7 +19,7 @@ def validate_return_date(self, return_date):
     return return_date
 
 class BookingApplicationSerializer(serializers.ModelSerializer):
-    package = serializers.PrimaryKeyRelatedField(queryset=FlightPackage.objects.all())
+    package = serializers.PrimaryKeyRelatedField(queryset=FlightPackage.objects.filter(is_hidden=True))
 
     class Meta:
         model = BookingApplication
