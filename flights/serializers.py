@@ -60,3 +60,12 @@ class AdminLoginSerializer(serializers.Serializer):
     class Meta:
         model = User
         fields = ['username', 'password']
+
+class AdminUpdatePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+    new_password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+    confirm_password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+
+    class Meta:
+        model = User
+        fields = ['old_password', 'new_password', 'confirm_password']

@@ -12,8 +12,8 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 from django.contrib.auth import authenticate
 from .models import FlightPackage, BookingApplication, ContactMessage
-from .serializers import FlightPackageSerializer, UserSerializer, AdminLoginSerializer, BookingApplicationSerializer, \
-    ContactMessageSerializer
+from .serializers import (FlightPackageSerializer, UserSerializer, AdminLoginSerializer, AdminUpdatePasswordSerializer,
+                          BookingApplicationSerializer, ContactMessageSerializer)
 
 
 class AdminRegisterView(APIView):
@@ -49,18 +49,22 @@ class AdminLoginView(APIView):
 
 class AdminUpdatePasswordView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = AdminUpdatePasswordSerializer
 
     def post(self, request):
+        serializer = AdminUpdatePasswordSerializer(data=request.data)
         user = request.user
-        old_password = request.data.get('old_password')
-        if not user.check_password(old_password):
-            return Response({'error': 'Old password is incorrect'}, status=status.HTTP_400_BAD_REQUEST)
-        new_password = request.data.get('new_password')
-        if new_password:
-            user.set_password(new_password)
-            user.save()
-            return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
-        return Response({'error': 'New password is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if serializer.is_valid():
+            old_password = serializer.validated_data.get('old_password')
+            new_password = serializer.validated_data.get('new_password')
+            confirm_password = serializer.validated_data.get('confirm_password')
+            if user.check_password(old_password):
+                if new_password == confirm_password:
+                    user.set_password(new_password)
+                    user.save()
+                    return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
+                return Response({'error': 'New password and confirm password do not match'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Invalid old password'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ArchiveRestoreListDetailViewSet(mixins.DestroyModelMixin, GenericViewSet):
