@@ -7,7 +7,7 @@ from rest_framework.routers import DefaultRouter
 #     FlightPackageCreateViewSet, FlightPackageUpdateDeleteViewSet, BookingApplicationViewSet, \
 #     ContactMessageCreateViewSet, ContactMessageRetrieveUpdateDeleteViewSet
 
-from .views import AdminLoginView, AdminRegisterView
+from .views import AdminLoginView, AdminRegisterView, AdminUpdatePasswordView
 
 # from .views import FlightPackageModelViewset, FlightPackageReadViewset, BookingApplicationModelViewSet, \
 #     BookingApplicationCreateViewset, ContactMessageModelViewset, ContactMessageCreateViewset
@@ -53,6 +53,7 @@ router.register(r'flight/contact-message/archive', ContactMessageArchiveRestoreL
 urlpatterns = [
                   path('admin/register', AdminRegisterView.as_view(), name='admin_register'),
                   path('admin/login/', AdminLoginView.as_view(), name='admin_login'),
+                  path('admin/update-password/', AdminUpdatePasswordView.as_view(), name='admin_update_password'),
                   path('', include(router.urls)),
 
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
