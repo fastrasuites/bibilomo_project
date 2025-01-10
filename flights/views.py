@@ -63,7 +63,8 @@ class AdminUpdatePasswordView(APIView):
                     user.set_password(new_password)
                     user.save()
                     return Response({'message': 'Password updated successfully'}, status=status.HTTP_200_OK)
-                return Response({'error': 'New password and confirm password do not match'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'error': 'New password and confirm password do not match'},
+                                status=status.HTTP_400_BAD_REQUEST)
             return Response({'error': 'Invalid old password'}, status=status.HTTP_400_BAD_REQUEST)
 
 
