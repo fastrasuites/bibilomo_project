@@ -8,8 +8,8 @@ class FlightPackageSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlightPackage
         fields = ['id', 'name', 'destination', 'placeholder_image', 'flight_mode', 'flight_class', 'origin', 'price',
-                  'airline', 'departure_date', 'return_date', 'is_hidden']
-        read_only_fields = ['date_created', 'date_updated']
+                  'airline', 'departure_date', 'return_date']
+        read_only_fields = ['date_created', 'date_updated', 'is_hidden']
 
 def validate_return_date(self, return_date):
     if 'departure_date' in self.initial_data:
@@ -24,15 +24,15 @@ class BookingApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookingApplication
         fields = ['id', 'package', 'first_name', 'last_name', 'email', 'number_of_passengers', 'phone_number', 'date_of_birth',
-                  'gender', 'nationality', 'is_hidden']
-        read_only_fields = ['date_booked']
+                  'gender', 'nationality',]
+        read_only_fields = ['date_booked', 'is_hidden']
 
 
 class ContactMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactMessage
-        fields = ['id', 'full_name', 'email', 'message', 'is_hidden']
-        read_only_fields = ['date_sent']
+        fields = ['id', 'full_name', 'email', 'message']
+        read_only_fields = ['date_sent', 'is_hidden']
 
 
 class UserSerializer(serializers.ModelSerializer):
